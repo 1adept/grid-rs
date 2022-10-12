@@ -2,6 +2,7 @@ use std::fmt::Display;
 
 use super::grid_pos::GridPos;
 
+#[must_use]
 pub struct Grid<T> {
     data: Vec<T>,
     width: usize,
@@ -28,7 +29,7 @@ impl<T> Grid<T> {
     /// First Neighbor is UP followed by the other 3 in a clockwise order
     /// # Example
     /// ```
-    /// # use grid::grid::{Grid, GridPos};
+    /// # use grid::{Grid, GridPos};
     /// let slices: &[&[i32]] = &[
     ///     &[0, 1, 2],
     ///     &[3, 4, 5],
@@ -52,6 +53,7 @@ impl<T> Grid<T> {
     ///     grid.get_neighbors(&pos_of_7),
     ///     [Some(pos_of_4), Some(pos_of_8), None, Some(pos_of_6)]);
     /// ```
+    #[must_use]
     pub fn get_neighbors(&self, position: &GridPos) -> [Option<GridPos>; 4] {
         let index = position.pos;
 
@@ -79,11 +81,11 @@ impl<T> Grid<T> {
 
     /// Gets Neighbors (all Some(...)) of the specified position
     ///
-    /// Calls get_neighbors(position).into_iter().flatten().collect::<Vec<GridPos>>();
+    /// Calls `get_neighbors(position).into_iter().flatten().collect::<Vec<GridPos>>();`
     ///
     /// # Example
     /// ```
-    /// # use grid::grid::{Grid, GridPos};
+    /// # use grid::{Grid, GridPos};
     /// let slices: &[&[i32]] = &[
     ///     &[0, 1, 2],
     ///     &[3, 4, 5],
@@ -102,6 +104,7 @@ impl<T> Grid<T> {
     ///     grid.get_neighbors_flat(&pos_of_8),
     ///     vec![pos_of_5, pos_of_7]);
     /// ```
+    #[must_use]
     pub fn get_neighbors_flat(&self, position: &GridPos) -> Vec<GridPos> {
         self.get_neighbors(position)
             .into_iter()
@@ -116,7 +119,88 @@ impl<T> Grid<T> {
         }
     }
 
+    /// Gets `GridPos` at 0-indexed grid
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use grid::Grid;
+    /// # use grid::GridPos;
+    /// /*
+    ///     1,2,3,
+    ///     4,5,6,
+    ///  */
+    /// let grid = Grid::new(3, vec![1,2,3,4,5,6]);
+    /// let pos_1 = GridPos::new(0);
+    /// let pos_4 = GridPos::new(3);
+    /// let pos_3 = GridPos::new(2);
+    /// let pos_6 = GridPos::new(5);
+    /// assert_eq!(grid.pos_at(5, 5), None);
+    /// assert_eq!(grid.pos_at(0, 0), Some(pos_1));
+    /// assert_eq!(grid.pos_at(1, 0), Some(pos_4));
+    /// assert_eq!(grid.pos_at(0, 2), Some(pos_3));
+    /// assert_eq!(grid.pos_at(1, 2), Some(pos_6));
+    /// ```
+    #[must_use]
+    pub fn pos_at(&self, row: usize, col: usize) -> Option<GridPos> {
+        if col >= self.width {
+            return None;
+        }
+        let height = self.size() / self.width;
+        if row > height {
+            return None;
+        }
+
+        let pos = (self.width * row) + col;
+        if pos < self.size() {
+            Some(GridPos::new(pos))
+        } else {
+            None
+        }
+    }
+
+    /// Get a reference offset by row, col
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use grid::*;
+    /// /**
+    ///     1,2,3,
+    ///     4,5,6,
+    ///     7,8,9,
+    ///  */
+    /// let grid = Grid::new(3, vec![1,2,3,4,5,6,7,8,9]);
+    /// let pos_0_0 = grid.pos_at(0, 0).unwrap();
+    /// let pos_1_1 = grid.pos_at(1, 1).unwrap();
+    /// assert_eq!(grid.get(&pos_1_1), grid.get_at_offset(&pos_0_0, 1, 1));
+    /// assert_eq!(grid.get_at_offset(&grid.pos_at(1, 2).unwrap(), 0, 1), None);
+    /// assert_eq!(grid.get_at_offset(&grid.pos_at(1, 2).unwrap(), 1, 0), Some(&9));
+    /// ```
+    #[must_use]
+    pub fn get_at_offset(
+        &self,
+        at_position: &GridPos,
+        row_offset: i8,
+        col_offset: i8,
+    ) -> Option<&T> {
+        let col = col_offset + (at_position.pos % self.width) as i8;
+        let row = row_offset + (at_position.pos / self.width) as i8;
+        if row < 0 || col < 0 {
+            return None
+        }
+        let col = col as usize;
+        let row = row as usize;
+        let pos = self.pos_at(row, col);
+        if let Some(pos) = pos {
+            self.get(&pos)
+        } else {
+            None
+        }
+    }
+
     /// Get a reference to the value at the specified position
+    #[must_use]
     pub fn get(&self, pos: &GridPos) -> Option<&T> {
         if pos.pos < self.size() {
             Some(&self.data[pos.pos])
@@ -126,6 +210,7 @@ impl<T> Grid<T> {
     }
 
     /// Gets a mutable reference to the value at the specified position
+    #[must_use]
     pub fn get_mut(&mut self, pos: &GridPos) -> Option<&mut T> {
         if pos.pos < self.size() {
             Some(&mut self.data[pos.pos])
@@ -134,6 +219,7 @@ impl<T> Grid<T> {
         }
     }
 
+    #[must_use]
     pub fn iter(&self) -> GridIterator<T> {
         GridIterator {
             grid: self,
@@ -141,10 +227,12 @@ impl<T> Grid<T> {
         }
     }
 
+    #[must_use]
     pub fn width(&self) -> usize {
         self.width
     }
 
+    #[must_use]
     pub fn size(&self) -> usize {
         self.data.len()
     }
@@ -194,12 +282,11 @@ impl<T> From<Vec<Vec<T>>> for Grid<T> {
     /// # Panics
     /// Panics, when not all data-rows have to same width
     fn from(data: Vec<Vec<T>>) -> Self {
-        let all_widths: Vec<usize> = data.iter().map(|slice| slice.len()).collect();
+        let all_widths: Vec<usize> = data.iter().map(std::vec::Vec::len).collect();
         let first_width = &all_widths[0];
         let all_widths_same = all_widths.iter().all(|width| *width == *first_width);
-        if !all_widths_same {
-            panic!("Grid malformed! Not all rows have the same width");
-        }
+        
+        assert!(all_widths_same, "Grid malformed! Not all rows have the same width");
 
         let grid = data.into_iter().flatten().collect();
 
@@ -221,9 +308,8 @@ where
         let all_widths: Vec<usize> = data.iter().map(|slice| slice.len()).collect();
         let first_width = &all_widths[0];
         let all_widths_same = all_widths.iter().all(|width| *width == *first_width);
-        if !all_widths_same {
-            panic!("Malformed grid! Not all rows have to same width!");
-        }
+        
+        assert!(all_widths_same, "Malformed grid! Not all rows have to same width!");
 
         let data: Vec<T> = data.iter().flat_map(|slice| slice.to_vec()).collect();
         Grid {

@@ -1,3 +1,4 @@
+#[must_use]
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub struct GridPos {
     pub(super) pos: usize,
