@@ -8,8 +8,12 @@ pub struct Grid<T> {
 }
 
 impl<T> Grid<T> {
+    pub fn new(width: usize, data: Vec<T>) -> Self {
+        Grid { data, width }
+    }
+
     /// Creates a new grid with width and height
-    pub fn new(width: usize, height: usize) -> Self
+    pub fn new_empty(width: usize, height: usize) -> Self
     where
         T: Default,
     {
@@ -137,7 +141,11 @@ impl<T> Grid<T> {
         }
     }
 
-    fn size(&self) -> usize {
+    pub fn width(&self) -> usize {
+        self.width
+    }
+
+    pub fn size(&self) -> usize {
         self.data.len()
     }
 }
@@ -151,7 +159,9 @@ impl<'a, T> Iterator for GridIterator<'a, T> {
     type Item = &'a T;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.grid.get(&GridPos::new(self.index))
+        let next = self.grid.get(&GridPos::new(self.index));
+        self.index += 1;
+        next
     }
 }
 
@@ -167,7 +177,7 @@ where
                 .iter()
                 .enumerate()
                 .map(|(index, item)| {
-                    let seperator = if index > 0 && index % self.width == 0 {
+                    let seperator = if index % self.width == self.width - 1 {
                         ",\n"
                     } else {
                         ", "
