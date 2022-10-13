@@ -2,11 +2,13 @@
 macro_rules! grid {
     ( $( $x:expr ),* ) => {
         {
-            let mut row = Vec::new();
+            let mut rows = Vec::new();
             $(
-                row.push( Vec::from( $x ) );
+                rows.push( Vec::from( $x ) );
             )*
-            Grid::from(row)
+            let width = rows.get(0).map(Vec::len).or(Some(0)).unwrap();
+            let data = rows.into_iter().flatten().collect();
+            Grid::new(width, data)
         }
     };
 }
