@@ -255,6 +255,32 @@ impl<T> Grid<T> {
     }
 }
 
+impl<T> Grid<T>
+where
+    T: std::hash::Hash + Eq,
+{
+    pub fn unique_values(&self) -> std::collections::HashSet<&T> {
+        use std::collections::HashSet;
+        let mut unique = HashSet::new();
+        self.iter().for_each(|t| {
+            unique.insert(t);
+        });
+        unique
+    }
+
+    pub fn unique_map_positions(&self) -> std::collections::HashMap<&T, Vec<GridPos>> {
+        use std::collections::HashMap;
+        let mut map = HashMap::new();
+        self.iter().enumerate().for_each(|(index, t)| {
+            if !map.contains_key(t) {
+                map.insert(t, Vec::new());
+            }
+            map.get_mut(t).unwrap().push(GridPos::new(index));
+        });
+        map
+    }
+}
+
 pub struct GridIterator<'a, T> {
     grid: &'a Grid<T>,
     index: usize,
