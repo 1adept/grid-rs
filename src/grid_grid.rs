@@ -187,7 +187,7 @@ impl<T> Grid<T> {
         let col = col_offset + (at_position.pos % self.width) as i8;
         let row = row_offset + (at_position.pos / self.width) as i8;
         if row < 0 || col < 0 {
-            return None
+            return None;
         }
         let col = col as usize;
         let row = row as usize;
@@ -197,6 +197,23 @@ impl<T> Grid<T> {
         } else {
             None
         }
+    }
+
+    /// Calls `get_at_offset(position, 1, 0)`
+    pub fn down_of(&self, position: &GridPos) -> Option<&T> {
+        self.get_at_offset(position, 1, 0)
+    }
+    /// Calls `get_at_offset(position, -1, 0)`
+    pub fn up_of(&self, position: &GridPos) -> Option<&T> {
+        self.get_at_offset(position, -1, 0)
+    }
+    /// Calls `get_at_offset(position, 0, -1)`
+    pub fn left_of(&self, position: &GridPos) -> Option<&T> {
+        self.get_at_offset(position, 0, -1)
+    }
+    /// Calls `get_at_offset(position, 0, 1)`
+    pub fn right_of(&self, position: &GridPos) -> Option<&T> {
+        self.get_at_offset(position, 0, 1)
     }
 
     /// Get a reference to the value at the specified position
@@ -285,8 +302,11 @@ impl<T> From<Vec<Vec<T>>> for Grid<T> {
         let all_widths: Vec<usize> = data.iter().map(std::vec::Vec::len).collect();
         let first_width = &all_widths[0];
         let all_widths_same = all_widths.iter().all(|width| *width == *first_width);
-        
-        assert!(all_widths_same, "Grid malformed! Not all rows have the same width");
+
+        assert!(
+            all_widths_same,
+            "Grid malformed! Not all rows have the same width"
+        );
 
         let grid = data.into_iter().flatten().collect();
 
@@ -308,8 +328,11 @@ where
         let all_widths: Vec<usize> = data.iter().map(|slice| slice.len()).collect();
         let first_width = &all_widths[0];
         let all_widths_same = all_widths.iter().all(|width| *width == *first_width);
-        
-        assert!(all_widths_same, "Malformed grid! Not all rows have to same width!");
+
+        assert!(
+            all_widths_same,
+            "Malformed grid! Not all rows have to same width!"
+        );
 
         let data: Vec<T> = data.iter().flat_map(|slice| slice.to_vec()).collect();
         Grid {
