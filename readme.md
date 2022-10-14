@@ -1,3 +1,3 @@
 # Grid 
 
-A library for Grid<Clone + PartialEq> items
+A library for grid functionality
